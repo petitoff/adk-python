@@ -16,11 +16,14 @@ from __future__ import annotations
 
 from abc import ABC
 from abc import abstractmethod
+import logging
 from typing import Optional
 
 from ..errors.not_found_error import NotFoundError
 from .eval_case import EvalCase
 from .eval_set import EvalSet
+
+logger = logging.getLogger("google_adk." + __name__)
 
 
 class EvalSetsManager(ABC):
