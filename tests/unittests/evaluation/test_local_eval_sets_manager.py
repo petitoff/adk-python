@@ -588,7 +588,7 @@ class TestLocalEvalSetsManager:
         EvalSet(eval_set_id=eval_set_id, eval_cases=[updated_eval_case]),
     )
 
-  def test_local_eval_sets_manager_update_eval_case_eval_case_not_found(
+  def test_local_eval_sets_manager_update_eval_case_eval_set_not_found(
       self, local_eval_sets_manager, mocker
   ):
     app_name = "test_app"
@@ -603,8 +603,32 @@ class TestLocalEvalSetsManager:
 
     with pytest.raises(
         NotFoundError,
+        match=f"Eval set `{eval_set_id}` not found.",
+    ):
+      local_eval_sets_manager.update_eval_case(
+          app_name, eval_set_id, updated_eval_case
+      )
+
+  def test_local_eval_sets_manager_update_eval_case_eval_case_not_found(
+      self, local_eval_sets_manager, mocker
+  ):
+    app_name = "test_app"
+    eval_set_id = "test_eval_set"
+    eval_case_id = "test_eval_case"
+    updated_eval_case = EvalCase(eval_id=eval_case_id, conversation=[])
+    mock_eval_set = EvalSet(eval_set_id=eval_set_id, eval_cases=[])
+    mocker.patch(
+        "google.adk.evaluation.local_eval_sets_manager.LocalEvalSetsManager.get_eval_set",
+        return_value=mock_eval_set,
+    )
+    mocker.patch(
+        "google.adk.evaluation.local_eval_sets_manager.LocalEvalSetsManager.get_eval_case",
+        return_value=None,
+    )
+    with pytest.raises(
+        NotFoundError,
         match=(
-            f"Eval Set `{eval_set_id}` or Eval id `{eval_case_id}` not found."
+            f"Eval case `{eval_case_id}` not found in eval set `{eval_set_id}`."
         ),
     ):
       local_eval_sets_manager.update_eval_case(
@@ -649,7 +673,7 @@ class TestLocalEvalSetsManager:
         EvalSet(eval_set_id=eval_set_id, eval_cases=[]),
     )
 
-  def test_local_eval_sets_manager_delete_eval_case_eval_case_not_found(
+  def test_local_eval_sets_manager_delete_eval_case_eval_set_not_found(
       self, local_eval_sets_manager, mocker
   ):
     app_name = "test_app"
@@ -666,12 +690,35 @@ class TestLocalEvalSetsManager:
 
     with pytest.raises(
         NotFoundError,
-        match=(
-            f"Eval Set `{eval_set_id}` or Eval id `{eval_case_id}` not found."
-        ),
+        match=f"Eval set `{eval_set_id}` not found.",
     ):
       local_eval_sets_manager.delete_eval_case(
           app_name, eval_set_id, eval_case_id
       )
 
     mock_write_eval_set.assert_not_called()
+
+  def test_local_eval_sets_manager_delete_eval_case_eval_case_not_found(
+      self, local_eval_sets_manager, mocker
+  ):
+    app_name = "test_app"
+    eval_set_id = "test_eval_set"
+    eval_case_id = "test_eval_case"
+    mock_eval_set = EvalSet(eval_set_id=eval_set_id, eval_cases=[])
+    mocker.patch(
+        "google.adk.evaluation.local_eval_sets_manager.LocalEvalSetsManager.get_eval_set",
+        return_value=mock_eval_set,
+    )
+    mocker.patch(
+        "google.adk.evaluation.local_eval_sets_manager.LocalEvalSetsManager.get_eval_case",
+        return_value=None,
+    )
+    with pytest.raises(
+        NotFoundError,
+        match=(
+            f"Eval case `{eval_case_id}` not found in eval set `{eval_set_id}`."
+        ),
+    ):
+      local_eval_sets_manager.delete_eval_case(
+          app_name, eval_set_id, eval_case_id
+      )

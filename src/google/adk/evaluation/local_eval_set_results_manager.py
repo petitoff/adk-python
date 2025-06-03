@@ -17,7 +17,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import time
 
 from typing_extensions import override
 
@@ -29,10 +28,6 @@ logger = logging.getLogger("google_adk." + __name__)
 
 _ADK_EVAL_HISTORY_DIR = ".adk/eval_history"
 _EVAL_SET_RESULT_FILE_EXTENSION = ".evalset_result.json"
-
-
-def _sanitize_eval_set_result_name(eval_set_result_name: str) -> str:
-  return eval_set_result_name.replace("/", "_")
 
 
 class LocalEvalSetResultsManager(EvalSetResultsManager):
@@ -49,15 +44,8 @@ class LocalEvalSetResultsManager(EvalSetResultsManager):
       eval_case_results: list[EvalCaseResult],
   ) -> None:
     """Creates and saves a new EvalSetResult given eval_case_results."""
-    timestamp = time.time()
-    eval_set_result_id = app_name + "_" + eval_set_id + "_" + str(timestamp)
-    eval_set_result_name = _sanitize_eval_set_result_name(eval_set_result_id)
-    eval_set_result = EvalSetResult(
-        eval_set_result_id=eval_set_result_id,
-        eval_set_result_name=eval_set_result_name,
-        eval_set_id=eval_set_id,
-        eval_case_results=eval_case_results,
-        creation_timestamp=timestamp,
+    eval_set_result = self.create_eval_set_result(
+        app_name, eval_set_id, eval_case_results
     )
     # Write eval result file, with eval_set_result_name.
     app_eval_history_dir = self._get_eval_history_dir(app_name)
@@ -67,7 +55,7 @@ class LocalEvalSetResultsManager(EvalSetResultsManager):
     eval_set_result_json = eval_set_result.model_dump_json()
     eval_set_result_file_path = os.path.join(
         app_eval_history_dir,
-        eval_set_result_name + _EVAL_SET_RESULT_FILE_EXTENSION,
+        eval_set_result.eval_set_result_name + _EVAL_SET_RESULT_FILE_EXTENSION,
     )
     logger.info("Writing eval result to file: %s", eval_set_result_file_path)
     with open(eval_set_result_file_path, "w") as f:

@@ -23,20 +23,12 @@ from unittest.mock import patch
 
 from google.adk.evaluation.eval_result import EvalCaseResult
 from google.adk.evaluation.eval_result import EvalSetResult
+from google.adk.evaluation.eval_set_results_manager import _sanitize_eval_set_result_name
 from google.adk.evaluation.evaluator import EvalStatus
 from google.adk.evaluation.local_eval_set_results_manager import _ADK_EVAL_HISTORY_DIR
 from google.adk.evaluation.local_eval_set_results_manager import _EVAL_SET_RESULT_FILE_EXTENSION
-from google.adk.evaluation.local_eval_set_results_manager import _sanitize_eval_set_result_name
 from google.adk.evaluation.local_eval_set_results_manager import LocalEvalSetResultsManager
 import pytest
-
-
-def test_sanitize_eval_set_result_name():
-  assert _sanitize_eval_set_result_name("app/name") == "app_name"
-  assert _sanitize_eval_set_result_name("app_name") == "app_name"
-  assert _sanitize_eval_set_result_name("app/name/with/slashes") == (
-      "app_name_with_slashes"
-  )
 
 
 class TestLocalEvalSetResultsManager:
