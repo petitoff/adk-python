@@ -854,6 +854,9 @@ def cli_deploy_agent_engine(
 ):
   """Deploys an agent to Agent Engine.
 
+  Args:
+    agent (str): Required. The path to the agent to be deloyed.
+
   Example:
 
     adk deploy agent_engine --project=[project] --region=[region]
