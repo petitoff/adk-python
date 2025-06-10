@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import re
 from typing import Any
 from typing import Dict
@@ -82,8 +83,35 @@ class VertexAiSessionService(BaseSessionService):
     session_id = api_response['name'].split('/')[-3]
     operation_id = api_response['name'].split('/')[-1]
 
+    # Check if Vertex AI and API key are both enabled, meaning the user is
+    # using the Vertex Express Mode.
     max_retry_attempt = 5
     lro_response = None
+    if os.environ.get('GOOGLE_GENAI_USE_VERTEXAI', '0').lower() in [
+        'true',
+        '1',
+    ] and os.environ.get('GOOGLE_API_KEY', None):
+      while max_retry_attempt >= 0:
+        get_session_api_response = await api_client.async_request(
+            http_method='GET',
+            path=(
+                f'reasoningEngines/{reasoning_engine_id}/sessions/{session_id}'
+            ),
+            request_dict={},
+        )
+        if get_session_api_response.status_code == 200:
+          update_timestamp = isoparse(
+              get_session_api_response['updateTime']
+          ).timestamp()
+          return Session(
+              app_name=str(app_name),
+              user_id=str(user_id),
+              id=str(session_id),
+              state=get_session_api_response.get('sessionState', {}),
+              last_update_time=update_timestamp,
+          )
+        await asyncio.sleep(1)
+        max_retry_attempt -= 1
     while max_retry_attempt >= 0:
       lro_response = await api_client.async_request(
           http_method='GET',
